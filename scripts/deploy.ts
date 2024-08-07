@@ -12,7 +12,6 @@ async function main() {
     console.log(lcdURL)
     const lcd = new LCDClient(lcdURL, {
         gasPrices: gasPrices,
-        chainId: chainId,
         gasAdjustment: gasAdjustment,
       });
     
@@ -21,7 +20,7 @@ async function main() {
           'sudden puzzle despair repair spirit tone next toast topple bring fashion adjust floor usual canyon pass forum decrease between soft lottery quiz across edge',
       });
       const wallet = new Wallet(lcd, key);
-      const path = './build/Test.bin';
+      const path = './build/Usd.bin';
       const codeBytes = fs.readFileSync(path, "utf-8");
       const msgs = [
         new MsgCreate(key.accAddress, codeBytes),
@@ -30,7 +29,7 @@ async function main() {
     
       // sign tx
       const signedTx = await wallet.createAndSignTx({ msgs
-        
+
        });
     //   // send(broadcast) tx
       lcd.tx.broadcastSync(signedTx).then(res => console.log(res));
