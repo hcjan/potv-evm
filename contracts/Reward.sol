@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Config.sol";
+import "./interfaces/IConfig.sol";
 
 contract Reward is Ownable {
     using SafeERC20 for IERC20;
@@ -13,13 +13,13 @@ contract Reward is Ownable {
     mapping(address => mapping(address => mapping(address => uint256))) private userRewardPerTokenPaid;
     mapping(address => uint256) private rewards;
     IERC20 public rewardToken;
-    Config public config;
+    IConfig public config;
 
     event RewardDistributed(address indexed validator, address indexed lpToken, uint256 perTokenRewardIncrease);
     event RewardClaimed(address indexed user, uint256 amount);
 
     constructor(address _configAddress, address _rewardToken) Ownable(msg.sender) {
-        config = Config(_configAddress);
+        config = IConfig(_configAddress);
         rewardToken = IERC20(_rewardToken);
     }
 
