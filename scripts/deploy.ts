@@ -1,42 +1,21 @@
-import { LCDClient, MnemonicKey, MsgCreate, Wallet, /* MsgCreate2 */ } from '@initia/initia.js';
-import * as fs from 'fs';
-import dotenv from 'dotenv';
-dotenv.config();
+import { ethers } from "hardhat";
+
 async function main() {
+  console.log("Deploying USD contract...");
 
-    const lcdURL = process.env.LCD_URL!;
-    const gasPrices = process.env.GAS_PRICES;
-    const chainId = process.env.CHAIN_ID;
-    
-    const gasAdjustment = process.env.GAS_ADJUSTMENT;
-    console.log(lcdURL)
-    const lcd = new LCDClient(lcdURL, {
-        gasPrices: gasPrices,
-        gasAdjustment: gasAdjustment,
-      });
-    
-      const key = new MnemonicKey({
-        mnemonic:
-          'sudden puzzle despair repair spirit tone next toast topple bring fashion adjust floor usual canyon pass forum decrease between soft lottery quiz across edge',
-      });
-      const wallet = new Wallet(lcd, key);
-      const path = './build/Usd.bin';
-      const codeBytes = fs.readFileSync(path, "utf-8");
-      const msgs = [
-        new MsgCreate(key.accAddress, codeBytes),
-        // new MsgCreate2(key.accAddress, codeBytes, slat)
-      ];
-    
-      // sign tx
-      const signedTx = await wallet.createAndSignTx({ msgs
+  const [signer] = await ethers.getSigners();
+  console.log("Deploying with signer:", signer.address);
+  const Usd = await ethers.deployContract("Usd", [], {
+    signer,
+  });
+   await Usd.waitForDeployment();
 
-       });
-    //   // send(broadcast) tx
-      lcd.tx.broadcastSync(signedTx).then(res => console.log(res));
-
+   console.log("USD deployed to:", await Usd.getAddress());
 }
 
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
 main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
+  console.error(error);
+  process.exitCode = 1;
 });
