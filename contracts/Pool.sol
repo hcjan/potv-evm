@@ -5,12 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IConfig.sol";
+import "./interfaces/IUSD.sol";
 
 contract Pool is Ownable {
     using SafeERC20 for IERC20;
 
     IConfig public config;
-
+    IUSD public usdToken;
+    
     mapping(address => uint256) public userBorrow;
     uint256 public totalBorrow;
 
@@ -28,8 +30,9 @@ contract Pool is Ownable {
     error ExceedSupplyAmount();
     error InsufficientSupply();
 
-    constructor(address _configAddress) Ownable(msg.sender) {
+    constructor(address _configAddress, address _usdAddress) Ownable(msg.sender) {
         config = IConfig(_configAddress);
+        usdToken = IUSD(_usdAddress);
     }
 
     function increasePoolToken(address tokenAddress, uint256 amount) external {
@@ -69,7 +72,8 @@ contract Pool is Ownable {
     function borrowUSD(uint256 amount) external {
         userBorrow[msg.sender] += amount;
         totalBorrow += amount;
-        // Implement USD transfer logic here
+        usdToken.mint(msg.sender, amount);
+
         emit Borrow(msg.sender, amount);
     }
 
@@ -77,7 +81,7 @@ contract Pool is Ownable {
         require(userBorrow[repaidUser] >= amount, "Exceed borrow amount");
         userBorrow[repaidUser] -= amount;
         totalBorrow -= amount;
-        // Implement USD transfer logic here
+        usdToken.burn(msg.sender, amount);
         emit Repay(repaidUser, amount);
     }
 
