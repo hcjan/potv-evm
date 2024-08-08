@@ -12,6 +12,7 @@ contract Chain is Ownable {
     uint256 public constant MIGRATE_STAKE_LIMIT = 500;
 
     IConfig public config;
+    address public lendContract;
 
     EnumerableSet.AddressSet private validators;
     mapping(address => mapping(address => mapping(address => uint256))) private userStakes;
@@ -30,6 +31,15 @@ contract Chain is Ownable {
         config = IConfig(_configAddress);
     }
 
+    modifier onlyLend() {
+        require(msg.sender == lendContract, "Only Lend contract can call this function");
+        _;
+    }
+
+    function setLendContract(address _lendContract) external onlyOwner {
+        lendContract = _lendContract;
+    }
+
     function setValidators(address[] memory newValidators) external onlyOwner {
         for (uint256 i = 0; i < validators.length(); i++) {
             validators.remove(validators.at(i));
@@ -39,14 +49,14 @@ contract Chain is Ownable {
         }
     }
 
-    function stakeToken(address user, address validator, address tokenType, uint256 amount) external {
+    function stakeToken(address user, address validator, address tokenType, uint256 amount) external onlyLend {
         require(validators.contains(validator), "Invalid validator");
         userStakes[user][validator][tokenType] += amount;
         validatorStakes[validator][tokenType] += amount;
         validatorStakedUsers[validator].add(user);
     }
 
-    function unstakeToken(address user, address validator, address tokenType, uint256 amount) external {
+    function unstakeToken(address user, address validator, address tokenType, uint256 amount) external onlyLend {
         require(userStakes[user][validator][tokenType] >= amount, "Insufficient stake");
         userStakes[user][validator][tokenType] -= amount;
         validatorStakes[validator][tokenType] -= amount;
@@ -55,7 +65,7 @@ contract Chain is Ownable {
         }
     }
 
-    function liquidatePosition(address liquidator, address liquidatedParty) external {
+    function liquidatePosition(address liquidator, address liquidatedParty) external onlyLend {
         address[] memory whitelistTokens = config.getAllWhitelistTokens();
         for (uint256 i = 0; i < validators.length(); i++) {
             address validator = validators.at(i);
@@ -129,4 +139,3 @@ contract Chain is Ownable {
         return MIGRATE_STAKE_LIMIT;
     }
 }
-

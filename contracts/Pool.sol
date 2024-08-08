@@ -12,6 +12,7 @@ contract Pool is Ownable {
 
     IConfig public config;
     IUSD public usdToken;
+    address public lendContract;
     
     mapping(address => uint256) public userBorrow;
     uint256 public totalBorrow;
@@ -29,13 +30,23 @@ contract Pool is Ownable {
     error ExceedBorrowAmount();
     error ExceedSupplyAmount();
     error InsufficientSupply();
+    error OnlyLendContract();
 
     constructor(address _configAddress, address _usdAddress) Ownable(msg.sender) {
         config = IConfig(_configAddress);
         usdToken = IUSD(_usdAddress);
     }
 
-    function increasePoolToken(address tokenAddress, uint256 amount) external {
+    modifier onlyLend() {
+        require(msg.sender == lendContract, "Only Lend contract can call this function");
+        _;
+    }
+
+    function setLendContract(address _lendContract) external onlyOwner {
+        lendContract = _lendContract;
+    }
+
+    function increasePoolToken(address tokenAddress, uint256 amount) external onlyLend {
         require(config.isWhitelistToken(tokenAddress), "Not a whitelisted token");
         IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
         
@@ -45,7 +56,7 @@ contract Pool is Ownable {
         emit IncreaseToken(msg.sender, tokenAddress, amount);
     }
 
-    function decreasePoolToken(address tokenAddress, uint256 amount) external {
+    function decreasePoolToken(address tokenAddress, uint256 amount) external onlyLend {
         require(userSupply[tokenAddress][msg.sender] >= amount, "Insufficient balance");
 
         userSupply[tokenAddress][msg.sender] -= amount;
@@ -56,7 +67,7 @@ contract Pool is Ownable {
         emit DecreaseToken(msg.sender, tokenAddress, amount);
     }
 
-    function liquidateTokens(address src, address dest) external onlyOwner {
+    function liquidateTokens(address src, address dest) external onlyLend {
         address[] memory whitelistTokens = config.getAllWhitelistTokens();
         for (uint i = 0; i < whitelistTokens.length; i++) {
             address tokenAddress = whitelistTokens[i];
@@ -69,7 +80,7 @@ contract Pool is Ownable {
         }
     }
 
-    function borrowUSD(uint256 amount) external {
+    function borrowUSD(uint256 amount) external onlyLend {
         userBorrow[msg.sender] += amount;
         totalBorrow += amount;
         usdToken.mint(msg.sender, amount);
@@ -77,7 +88,7 @@ contract Pool is Ownable {
         emit Borrow(msg.sender, amount);
     }
 
-    function repayUSD(address repaidUser, uint256 amount) external {
+    function repayUSD(address repaidUser, uint256 amount) external onlyLend {
         require(userBorrow[repaidUser] >= amount, "Exceed borrow amount");
         userBorrow[repaidUser] -= amount;
         totalBorrow -= amount;
