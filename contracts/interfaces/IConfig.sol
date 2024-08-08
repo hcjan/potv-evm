@@ -12,7 +12,7 @@ interface IConfig {
     function getPricePrecisionDecimal() external pure returns (uint256);
     function getMCR() external view returns (uint256);
     function getPrecision() external pure returns (uint256);
-    
+    function liquidationRate() external view returns (uint256);
     event CollateralAdded(address token);
     event CollateralDisabled(address token);
     event MCRUpdated(uint256 newMCR);

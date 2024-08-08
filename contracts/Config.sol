@@ -10,8 +10,6 @@ contract Config is Ownable {
 
     uint256 public constant PRECISION_DECIMALS = 6;
 
-    uint256 public constant ECollateralAlreadyExist = 2000;
-    uint256 public constant ENotCollateral = 2001;
 
     EnumerableSet.AddressSet private _collateralTokens;
     uint256 public mcr;
