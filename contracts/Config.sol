@@ -4,8 +4,8 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-contract Config is Ownable {
+import "./interfaces/IConfig.sol";
+contract Config is Ownable, IConfig {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 public constant PRECISION_DECIMALS = 6;
@@ -15,10 +15,6 @@ contract Config is Ownable {
     uint256 public mcr;
     uint256 public liquidationRate;
 
-    event CollateralAdded(address token);
-    event CollateralDisabled(address token);
-    event MCRUpdated(uint256 newMCR);
-    event LiquidationRateUpdated(uint256 newLiquidationRate);
 
     constructor(uint256 _mcr, uint256 _liquidationRate) Ownable(msg.sender) {
         mcr = _mcr;

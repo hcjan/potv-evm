@@ -4,8 +4,8 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./interfaces/IConfig.sol";
-
-contract Chain is Ownable {
+import "./interfaces/IChain.sol";
+contract Chain is Ownable, IChain {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 public constant PRECISION_DECIMALS = 6;
@@ -19,14 +19,7 @@ contract Chain is Ownable {
     mapping(address => mapping(address => uint256)) private validatorStakes;
     mapping(address => EnumerableSet.AddressSet) private validatorStakedUsers;
 
-    event ChainLiquidateEvent(
-        address indexed liquidatedUser,
-        address indexed liquidator,
-        address indexed validator,
-        address tokenType,
-        uint256 amount
-    );
-
+   
     constructor(address _configAddress) Ownable(msg.sender) {
         config = IConfig(_configAddress);
     }

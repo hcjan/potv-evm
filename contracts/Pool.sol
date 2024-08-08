@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IConfig.sol";
 import "./interfaces/IUSD.sol";
-
-contract Pool is Ownable {
+import "./interfaces/IPool.sol";
+contract Pool is Ownable, IPool {
     using SafeERC20 for IERC20;
 
     IConfig public config;
@@ -20,11 +20,6 @@ contract Pool is Ownable {
     mapping(address => mapping(address => uint256)) public userSupply;
     mapping(address => uint256) public totalSupply;
 
-    event Borrow(address indexed account, uint256 amount);
-    event Repay(address indexed account, uint256 amount);
-    event IncreaseToken(address indexed account, address indexed tokenType, uint256 amount);
-    event DecreaseToken(address indexed account, address indexed tokenType, uint256 amount);
-    event LiquidateToken(address indexed liquidator, address indexed liquidatedUser, address indexed tokenType, uint256 amount);
 
     error NotWhiteListToken();
     error ExceedBorrowAmount();

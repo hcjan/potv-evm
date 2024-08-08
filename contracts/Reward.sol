@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IConfig.sol";
-
-contract Reward is Ownable {
+import "./interfaces/IChain.sol";
+import "./interfaces/IReward.sol";
+contract Reward is Ownable, IReward {
     using SafeERC20 for IERC20;
 
     mapping(address => mapping(address => uint256)) private rewardPerTokenStored;
@@ -14,13 +15,12 @@ contract Reward is Ownable {
     mapping(address => uint256) private rewards;
     IERC20 public rewardToken;
     IConfig public config;
+    IChain public chain;
 
-    event RewardDistributed(address indexed validator, address indexed lpToken, uint256 perTokenRewardIncrease);
-    event RewardClaimed(address indexed user, uint256 amount);
-
-    constructor(address _configAddress, address _rewardToken) Ownable(msg.sender) {
+    constructor(address _configAddress, address _rewardToken, address _chainAddress) Ownable(msg.sender) {
         config = IConfig(_configAddress);
         rewardToken = IERC20(_rewardToken);
+        chain = IChain(_chainAddress);
     }
 
     function setRewardToken(address _rewardToken) external onlyOwner {
@@ -31,7 +31,7 @@ contract Reward is Ownable {
         uint256 earnedAmount = earned(user);
         rewards[user] += earnedAmount;
 
-        address[] memory validators = config.getAllWhitelistTokens(); // Assuming this returns all validators
+        address[] memory validators = chain.getValidators();
         for (uint256 i = 0; i < validators.length; i++) {
             address validator = validators[i];
             address[] memory lpTokens = config.getAllWhitelistTokens();
@@ -44,13 +44,13 @@ contract Reward is Ownable {
 
     function earned(address user) public view returns (uint256) {
         uint256 totalEarned = 0;
-        address[] memory validators = config.getAllWhitelistTokens(); // Assuming this returns all validators
+        address[] memory validators = chain.getValidators();
         for (uint256 i = 0; i < validators.length; i++) {
             address validator = validators[i];
             address[] memory lpTokens = config.getAllWhitelistTokens();
             for (uint256 j = 0; j < lpTokens.length; j++) {
                 address lpToken = lpTokens[j];
-                uint256 userValidatorTokenStake = getUserValidatorTokenStake(user, validator, lpToken);
+                uint256 userValidatorTokenStake = chain.getUserValidatorTokenStake(user, validator, lpToken);
                 uint256 rewardPerToken = getRewardPerTokenStored(lpToken, validator);
                 uint256 userRewardPaid = getUserRewardPaid(user, lpToken, validator);
                 totalEarned += (userValidatorTokenStake * (rewardPerToken - userRewardPaid)) / (10**config.getPrecision());
@@ -87,7 +87,7 @@ contract Reward is Ownable {
                 uint256 rewardAmount = rewardAmounts[i][j];
                 address validator = validators[i];
                 address lpToken = lpTokens[j];
-                uint256 validatorTokenStake = getValidatorTokenStake(validator, lpToken);
+                uint256 validatorTokenStake = chain.getValidatorTokenStake(validator, lpToken);
                 if (validatorTokenStake == 0) continue;
 
                 uint256 perTokenRewardIncrease = (rewardAmount * (10**config.getPrecision())) / validatorTokenStake;
@@ -118,16 +118,5 @@ contract Reward is Ownable {
 
     function getUserRewardPaid(address user, address lpToken, address validator) public view returns (uint256) {
         return userRewardPerTokenPaid[user][validator][lpToken];
-    }
-
-    // These functions should be implemented or imported from other contracts
-    function getUserValidatorTokenStake(address user, address validator, address lpToken) internal view returns (uint256) {
-        // Implementation needed
-        return 0;
-    }
-
-    function getValidatorTokenStake(address validator, address lpToken) internal view returns (uint256) {
-        // Implementation needed
-        return 0;
     }
 }
