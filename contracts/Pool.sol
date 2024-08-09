@@ -27,16 +27,22 @@ contract Pool is Ownable, IPool {
     error InsufficientSupply();
     error OnlyLendContract();
 
-    constructor(address _configAddress, address _usdAddress) Ownable(msg.sender) {
-        config = IConfig(_configAddress);
-        usdToken = IUSD(_usdAddress);
-    }
 
-    modifier onlyLend() {
+
+     modifier onlyLend() {
         require(msg.sender == lendContract, "Only Lend contract can call this function");
         _;
     }
 
+    constructor(address _configAddress) Ownable(msg.sender) {
+        config = IConfig(_configAddress);
+    }
+
+    function setUsdAddress(address _usdAddress) external onlyOwner {
+        usdToken = IUSD(_usdAddress);
+    }
+
+   
     function setLendContract(address _lendContract) external onlyOwner {
         lendContract = _lendContract;
     }

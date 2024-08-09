@@ -25,7 +25,7 @@ async function main() {
 
   // Deploy Pool
   const Pool = await ethers.getContractFactory("Pool");
-  const pool = await Pool.deploy(await config.getAddress(), ethers.ZeroAddress); // Temporarily use ZeroAddress for USD
+  const pool = await Pool.deploy(await config.getAddress()); // Temporarily use ZeroAddress for USD
   await pool.waitForDeployment();
   console.log("Pool deployed to:", await pool.getAddress());
 
@@ -35,9 +35,8 @@ async function main() {
   await usd.waitForDeployment();
   console.log("USD deployed to:", await usd.getAddress());
 
-  // Update Pool with correct USD address
-  await pool.setLendContract(ethers.ZeroAddress); // Temporarily set to ZeroAddress
-  
+  await pool.setUsdAddress(await usd.getAddress());
+
   // Deploy Reward
   const Reward = await ethers.getContractFactory("Reward");
   const reward = await Reward.deploy(
@@ -65,6 +64,8 @@ async function main() {
   await pool.setLendContract(await lend.getAddress());
   await chain.setLendContract(await lend.getAddress());
   await reward.setLendAddress(await lend.getAddress());
+  
+
 
   console.log("All contracts deployed and configured successfully!");
 }
