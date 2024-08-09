@@ -106,7 +106,7 @@ contract Lend is Ownable {
         return userSupplyAmount - minCollateralAmount;
     }
 
-    
+
     function getUserCollateralRatio(address user) public view returns (uint256) {
         uint256 precisionDecimals = config.getPrecision();
         uint256 precision = 10 ** precisionDecimals;
@@ -125,6 +125,7 @@ contract Lend is Ownable {
         }
         return usdValue;
     }
+    
     function getUserBorrowTotalUSD(address user) public view returns (uint256) {
         uint256 userTokenBorrow = pool.getUserTotalBorrow(user);
         uint256 usdDecimals = usd.decimals();
@@ -134,6 +135,13 @@ contract Lend is Ownable {
 
     function getTokenPrice(address tokenType) public view returns (uint256) {
         uint256 price = priceFeed.latestAnswer(tokenType);
-        return price; 
+        uint256 decimals = priceFeed.getPriceDecimals();
+        uint256 systemDecimals = config.getPrecision();
+        if (systemDecimals > decimals) {
+            price = price * (10 ** (systemDecimals - decimals));
+        } else {
+            price = price / (10 ** (decimals - systemDecimals));
+        }
+        return price;
     }
 }
