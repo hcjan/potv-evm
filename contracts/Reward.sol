@@ -16,18 +16,28 @@ contract Reward is Ownable, IReward {
     IERC20 public rewardToken;
     IConfig public config;
     IChain public chain;
+    address public lendAddress;
+
+    modifier onlyLend() {
+        require(msg.sender == lendAddress, "Only lend contract can call this function");
+        _;
+    }
 
     constructor(address _configAddress, address _rewardToken, address _chainAddress) Ownable(msg.sender) {
         config = IConfig(_configAddress);
         rewardToken = IERC20(_rewardToken);
         chain = IChain(_chainAddress);
     }
-
+    
+    function setLendAddress(address _lendAddress) external onlyOwner {
+        lendAddress = _lendAddress;
+    }
+    
     function setRewardToken(address _rewardToken) external onlyOwner {
         rewardToken = IERC20(_rewardToken);
     }
 
-    function updateReward(address user) public {
+    function updateReward(address user) public onlyLend {
         uint256 earnedAmount = earned(user);
         rewards[user] += earnedAmount;
 
