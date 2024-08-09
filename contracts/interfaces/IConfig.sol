@@ -9,7 +9,6 @@ interface IConfig {
     function getTokenDecimals(address tokenAddress) external view returns (uint256);
     function isWhitelistToken(address tokenType) external view returns (bool);
     function getAllWhitelistTokens() external view returns (address[] memory);
-    function getPricePrecisionDecimal() external pure returns (uint256);
     function getMCR() external view returns (uint256);
     function getPrecision() external pure returns (uint256);
     function liquidationRate() external view returns (uint256);

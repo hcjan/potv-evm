@@ -55,10 +55,7 @@ contract Config is Ownable, IConfig {
         return _collateralTokens.values();
     }
 
-    function getPricePrecisionDecimal() external pure returns (uint256) {
-        return PRECISION_DECIMALS;
-    }
-
+  
     function getMCR() external view returns (uint256) {
         return mcr;
     }
